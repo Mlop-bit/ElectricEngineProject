@@ -62,3 +62,7 @@ python scripts/read_wav.py train_cut/engine2_broken/pure_0.wav
 ```
 
 Both scripts locate the `data/` directory relative to their own location, so these commands also work when launched from another current directory.
+
+Tips:
+
+To close every plot : use Ctrl+C
