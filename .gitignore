@@ -1,0 +1,5 @@
+﻿# Dataset archives and other ZIP files
+*.zip
+
+# Python virtual environments
+.venv/
