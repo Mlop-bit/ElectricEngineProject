@@ -3,3 +3,8 @@
 
 # Python virtual environments
 .venv/
+__pycache__/
+*.py[cod]
+
+# Trained model artifact
+models/*.joblib
