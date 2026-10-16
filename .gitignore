@@ -1,11 +1,19 @@
 ﻿# Dataset archives and other ZIP files
 *.zip
 
+# Unfinished downloads
+*.part
+
 # Python virtual environments
 .venv/
-.DS_Store
 .venv*/
+
+# Python cache files
+__pycache__/
 
 # Generated model and visualization files
 models/
 *.png
+
+# Mac thing
+.DS_Store
