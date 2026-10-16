@@ -1,10 +1,12 @@
-"""Extract simple features from the training audio and save them to a CSV file.
+"""    By Martin Allum & Edoardo Sileoni
+Extract simple features from the audio and save them to CSV files.
+
 
 Steps:
-1. Find every WAV file in the train_cut/ folder of the dataset zip.
+1. Find every WAV file in the train_cut/ and test_cut/ folders of the dataset zip.
 2. Read each file with read_audio() from read_wav.py.
-3. Compute four features for each file.
-4. Save one row per file to train_cut_features.csv.
+3. Compute six features for each file.
+4. Save one row per file to train_cut_features.csv and test_cut_features.csv.
 
 Run with: python scripts/extract_features.py
 """
@@ -16,7 +18,8 @@ import pandas as pd
 
 from read_wav import DEFAULT_ARCHIVE, PROJECT_ROOT, read_audio
 
-OUTPUT_CSV = PROJECT_ROOT / "train_cut_features.csv"
+# Folders inside the zip that we make a CSV file for
+FOLDERS = ["train_cut", "test_cut"]
 
 # Folder name inside the zip -> class name in the CSV
 CLASS_NAMES = {
@@ -26,14 +29,14 @@ CLASS_NAMES = {
 }
 
 
-def find_training_files():
-    """Return a list of (class name, path) for every WAV file in train_cut/."""
+def find_wav_files(folder):
+    """Return a list of (class name, path) for every WAV file in the folder."""
     files = []
     with zipfile.ZipFile(DEFAULT_ARCHIVE) as archive:
         for path in sorted(archive.namelist()):
             # Example path: "train_cut/engine1_good/pure_0.wav"
             parts = path.split("/")
-            if path.endswith(".wav") and parts[0] == "train_cut":
+            if path.endswith(".wav") and parts[0] == folder:
                 engine = parts[1]
                 files.append((CLASS_NAMES[engine], path))
     return files
@@ -69,9 +72,10 @@ def loudness_curve(audio, sample_rate):
     return np.array(loudness), sample_rate / block_size
 
 
-def main():
-    files = find_training_files()
-    print(f"Found {len(files)} training files.")
+def extract_folder(folder):
+    """Compute the features for every WAV file in the folder and save them to a CSV file."""
+    files = find_wav_files(folder)
+    print(f"Found {len(files)} files in {folder}/")
 
     rows = []
     for class_name, path in files:
@@ -92,10 +96,17 @@ def main():
             # (0 = perfectly steady, bigger = more pulsing)
             "wobble_strength": np.std(loudness) / np.mean(loudness),
         })
-        print(f"{len(rows)}/{len(files)}  {class_name}: {path}")
+        if len(rows) % 100 == 0:    # show progress every 100 files
+            print(f"{len(rows)}/{len(files)} files done")
 
-    pd.DataFrame(rows).to_csv(OUTPUT_CSV, index=False)
-    print(f"Saved {len(rows)} rows to {OUTPUT_CSV}")
+    output_csv = PROJECT_ROOT / f"{folder}_features.csv"
+    pd.DataFrame(rows).to_csv(output_csv, index=False)
+    print(f"Saved {len(rows)} rows to {output_csv}\n")
+
+
+def main():
+    for folder in FOLDERS:
+        extract_folder(folder)
 
 
 if __name__ == "__main__":
