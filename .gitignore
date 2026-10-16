@@ -2,6 +2,8 @@
 *.zip
 
 # Python virtual environments
+.venv/
+.DS_Store
 .venv*/
 
 # Generated model and visualization files
