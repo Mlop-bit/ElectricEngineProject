@@ -1,5 +1,6 @@
 ﻿# Dataset archives and other ZIP files
 *.zip
+/data/
 
 # Unfinished downloads
 *.part
@@ -7,6 +8,9 @@
 # Python virtual environments
 .venv/
 .venv*/
+
+# Python cache files
+__pycache__/
 
 # Generated model and visualization files
 models/
