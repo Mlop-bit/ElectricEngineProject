@@ -1,118 +1,112 @@
-"""Extract acoustic features from the training and test WAV files in the ZIP."""
+"""    By Martin Allum & Edoardo Sileoni
+Extract simple features from the audio and save them to CSV files.
 
-from __future__ import annotations
 
-import argparse
-import csv
+Steps:
+1. Find every WAV file in the train_cut/ and test_cut/ folders of the dataset zip.
+2. Read each file with read_audio() from read_wav.py.
+3. Compute six features for each file.
+4. Save one row per file to train_cut_features.csv and test_cut_features.csv.
+
+Run with: python scripts/extract_features.py
+"""
+
 import zipfile
-from pathlib import Path, PurePosixPath
 
 import numpy as np
+import pandas as pd
 
-from read_wav import DEFAULT_ARCHIVE, PROJECT_ROOT, _read_audio_member
+from read_wav import DEFAULT_ARCHIVE, PROJECT_ROOT, read_audio
 
+# Folders inside the zip that we make a CSV file for
+FOLDERS = ["train_cut", "test_cut"]
 
-CATEGORIES = {
-    "Good": "engine1_good",
-    "Broken": "engine2_broken",
-    "Heavy load": "engine3_heavyload",
+# Folder name inside the zip -> class name in the CSV
+CLASS_NAMES = {
+    "engine1_good": "Good",
+    "engine2_broken": "Broken",
+    "engine3_heavyload": "Heavy load",
 }
-FIELDNAMES = [
-    "class", "file", "peak", "ptp", "rms", "dominant_frequency_hz",
-    "wobble_frequency_hz", "wobble_strength",
-]
 
 
-def to_mono_float(audio: np.ndarray) -> np.ndarray:
-    """Convert integer or floating-point WAV samples to mono float values."""
-    if np.issubdtype(audio.dtype, np.integer):
-        limits = np.iinfo(audio.dtype)
-        audio = audio.astype(np.float64)
-        if np.issubdtype(audio.dtype, np.unsignedinteger):
-            midpoint = (limits.max + 1) / 2
-            audio = (audio - midpoint) / midpoint
-        else:
-            audio /= max(abs(limits.min), limits.max)
-    else:
-        audio = audio.astype(np.float64)
-    return audio.mean(axis=1) if audio.ndim == 2 else audio
+def find_wav_files(folder):
+    """Return a list of (class name, path) for every WAV file in the folder."""
+    files = []
+    with zipfile.ZipFile(DEFAULT_ARCHIVE) as archive:
+        for path in sorted(archive.namelist()):
+            # Example path: "train_cut/engine1_good/pure_0.wav"
+            parts = path.split("/")
+            if path.endswith(".wav") and parts[0] == folder:
+                engine = parts[1]
+                files.append((CLASS_NAMES[engine], path))
+    return files
 
 
-def dominant_frequency(audio: np.ndarray, sample_rate: float) -> float:
-    if len(audio) < 2:
-        return 0.0
-    centered = audio - np.mean(audio)
-    magnitudes = np.abs(np.fft.rfft(centered * np.hanning(len(centered))))
-    magnitudes[0] = 0
-    if not np.any(magnitudes):
-        return 0.0
+def to_mono(samples):
+    """Turn 16-bit stereo samples into one channel with values between -1 and 1."""
+    audio = samples / 32768.0   # 16-bit values go from -32768 to 32767
+    return audio.mean(axis=1)   # average the channels
+
+
+def dominant_frequency(audio, sample_rate):
+    """Return the frequency (in Hz) that is strongest in the sound."""
+    audio = audio - audio.mean()               # remove the DC offset
+    audio = audio * np.hanning(len(audio))     # window to reduce FFT leakage
+    strengths = np.abs(np.fft.rfft(audio))
     frequencies = np.fft.rfftfreq(len(audio), d=1 / sample_rate)
-    return float(frequencies[np.argmax(magnitudes)])
+    strengths[0] = 0                           # ignore 0 Hz
+    return frequencies[np.argmax(strengths)]
 
 
-def loudness_curve(audio: np.ndarray, sample_rate: int) -> tuple[np.ndarray, float]:
-    """Return block RMS values sampled at about 200 Hz."""
-    block_size = max(1, sample_rate // 200)
-    usable_length = len(audio) - len(audio) % block_size
-    if usable_length == 0:
-        return np.array([], dtype=np.float64), sample_rate / block_size
-    blocks = audio[:usable_length].reshape(-1, block_size)
-    return np.sqrt(np.mean(blocks ** 2, axis=1)), sample_rate / block_size
+def loudness_curve(audio, sample_rate):
+    """Cut the sound into 5 ms pieces and return the loudness (RMS) of each piece.
+
+    The result is a new, much shorter signal that shows how the loudness
+    changes over time. It has 200 values per second instead of 44100.
+    """
+    block_size = sample_rate // 200    # number of samples in 5 ms
+    loudness = []
+    for start in range(0, len(audio) - block_size + 1, block_size):
+        block = audio[start:start + block_size]
+        loudness.append(np.sqrt(np.mean(block ** 2)))
+    return np.array(loudness), sample_rate / block_size
 
 
-def extract_folder(archive: zipfile.ZipFile, folder: str, output_path: Path) -> int:
+def extract_folder(folder):
+    """Compute the features for every WAV file in the folder and save them to a CSV file."""
+    files = find_wav_files(folder)
+    print(f"Found {len(files)} files in {folder}/")
+
     rows = []
-    for label, folder_name in CATEGORIES.items():
-        prefix = f"{folder}/{folder_name}/"
-        members = sorted(
-            (name for name in archive.namelist()
-             if name.startswith(prefix) and name.lower().endswith(".wav")),
-            key=lambda name: int(PurePosixPath(name).stem.rsplit("_", 1)[-1]),
-        )
-        if not members:
-            raise FileNotFoundError(f"No WAV files found under {prefix} in the dataset archive")
-        for member in members:
-            raw_audio, sample_rate = _read_audio_member(archive, member)
-            audio = to_mono_float(raw_audio)
-            if len(audio) == 0:
-                raise ValueError(f"Audio file is empty: {member}")
-            loudness, loudness_rate = loudness_curve(audio, sample_rate)
-            mean_loudness = float(np.mean(loudness)) if len(loudness) else 0.0
-            rows.append({
-                "class": label,
-                "file": PurePosixPath(member).name,
-                "peak": float(np.max(np.abs(audio))),
-                "ptp": float(np.ptp(audio)),
-                "rms": float(np.sqrt(np.mean(audio ** 2))),
-                "dominant_frequency_hz": dominant_frequency(audio, sample_rate),
-                "wobble_frequency_hz": dominant_frequency(loudness, loudness_rate),
-                "wobble_strength": float(np.std(loudness) / mean_loudness) if mean_loudness else 0.0,
-            })
+    for class_name, path in files:
+        samples, sample_rate = read_audio(DEFAULT_ARCHIVE, path)
+        audio = to_mono(samples)
+        loudness, loudness_rate = loudness_curve(audio, sample_rate)
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=FIELDNAMES)
-        writer.writeheader()
-        writer.writerows(rows)
-    print(f"Saved {len(rows)} rows to {output_path}")
-    return len(rows)
+        rows.append({
+            "class": class_name,
+            "file": path.split("/")[-1],
+            "peak": np.max(np.abs(audio)),                # loudest single sample
+            "ptp": np.max(audio) - np.min(audio),         # peak-to-peak
+            "rms": np.sqrt(np.mean(audio ** 2)),          # average loudness
+            "dominant_frequency_hz": dominant_frequency(audio, sample_rate),
+            # How many times per second the loudness goes up and down
+            "wobble_frequency_hz": dominant_frequency(loudness, loudness_rate),
+            # How big the loudness changes are compared to the average loudness
+            # (0 = perfectly steady, bigger = more pulsing)
+            "wobble_strength": np.std(loudness) / np.mean(loudness),
+        })
+        if len(rows) % 100 == 0:    # show progress every 100 files
+            print(f"{len(rows)}/{len(files)} files done")
+
+    output_csv = PROJECT_ROOT / f"{folder}_features.csv"
+    pd.DataFrame(rows).to_csv(output_csv, index=False)
+    print(f"Saved {len(rows)} rows to {output_csv}\n")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--archive", type=Path, default=DEFAULT_ARCHIVE,
-                        help=f"dataset ZIP (default: {DEFAULT_ARCHIVE})")
-    parser.add_argument("--folder", choices=("train_cut", "test_cut"),
-                        help="extract only this dataset split (default: both)")
-    args = parser.parse_args()
-    if not args.archive.is_file():
-        parser.error(f"dataset archive does not exist: {args.archive}")
-
-    folders = [args.folder] if args.folder else ["train_cut", "test_cut"]
-    with zipfile.ZipFile(args.archive) as archive:
-        for folder in folders:
-            output_path = PROJECT_ROOT / f"{folder}_features.csv"
-            extract_folder(archive, folder, output_path)
+def main():
+    for folder in FOLDERS:
+        extract_folder(folder)
 
 
 if __name__ == "__main__":
