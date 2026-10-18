@@ -20,11 +20,26 @@ ElectricEngineProject/
 
 ## Setup
 
-Install the dependencies into the project's Python environment:
+Create a project-local environment and install the dependencies:
 
 ```powershell
-python -m pip install -r requirements.txt
+uv venv .venv --python 3.11
+uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 ```
+
+Select `.venv\Scripts\python.exe` as the Python interpreter in VS Code before
+running the scripts.
+
+If a package fails with `DLL load failed ... En programkontrollpolicy har
+blokkert denne filen`, Windows App Control is blocking native Python extension
+modules. This can affect pandas, Matplotlib, and scikit-learn at paths such as
+`<environment>\Lib\site-packages\pandas\_libs\*.pyd`,
+`<environment>\Lib\site-packages\matplotlib\*.pyd`, and
+`<environment>\Lib\site-packages\sklearn\*.pyd`. This cannot be fixed in the
+Python script or by reinstalling packages without changing the policy. Ask
+the administrator to approve this trusted project environment and its
+dependencies, or run the project in an approved Python environment/machine.
+Do not disable the security policy yourself.
 
 ## Use
 
