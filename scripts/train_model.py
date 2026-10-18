@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import argparse
 import csv
-import re
 from pathlib import Path
 
 import joblib
 import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import GroupShuffleSplit
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -18,29 +16,14 @@ from sklearn.preprocessing import StandardScaler
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CSV = PROJECT_ROOT / "train_cut_features.csv"
+DEFAULT_TEST_CSV = PROJECT_ROOT / "test_cut_features.csv"
 DEFAULT_MODEL = PROJECT_ROOT / "models" / "engine_classifier.joblib"
 FEATURE_COLUMNS = ["peak", "ptp", "rms", "dominant_frequency_hz"]
 RANDOM_STATE = 42
-CONTIGUOUS_GROUP_SIZE = 10
 
 
-def groups_from_filenames(filenames: list[str]) -> np.ndarray:
-    """Keep blocks of neighboring cuts together to reduce temporal leakage."""
-    groups = []
-    for filename in filenames:
-        match = re.search(r"_(\d+)$", Path(str(filename)).stem)
-        if match:
-            cut_number = int(match.group(1))
-            groups.append(f"cut-block-{cut_number // CONTIGUOUS_GROUP_SIZE}")
-        else:
-            groups.append(str(filename))
-    return np.asarray(groups)
-
-
-def train(csv_path: Path, model_path: Path, test_size: float) -> None:
-    if not 0 < test_size < 1:
-        raise ValueError("test_size must be between 0 and 1")
-
+def load_features(csv_path: Path) -> tuple[np.ndarray, np.ndarray]:
+    """Load and validate feature values and labels from a CSV file."""
     with csv_path.open("r", newline="", encoding="utf-8") as csv_file:
         reader = csv.DictReader(csv_file)
         fieldnames = reader.fieldnames or []
@@ -55,12 +38,14 @@ def train(csv_path: Path, model_path: Path, test_size: float) -> None:
 
     x = np.asarray([[float(row[column]) for column in FEATURE_COLUMNS] for row in rows])
     y = np.asarray([row["class"] for row in rows], dtype=str)
-    groups = groups_from_filenames([row["file"] for row in rows])
     if not np.isfinite(x).all():
         raise ValueError("Feature CSV contains missing or non-finite feature values")
+    return x, y
 
-    splitter = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=RANDOM_STATE)
-    train_indices, test_indices = next(splitter.split(x, y, groups))
+
+def train(train_csv: Path, test_csv: Path, model_path: Path) -> None:
+    x_train, y_train = load_features(train_csv)
+    x_test, y_test = load_features(test_csv)
     model = make_pipeline(
         StandardScaler(),
         MLPClassifier(
@@ -72,20 +57,21 @@ def train(csv_path: Path, model_path: Path, test_size: float) -> None:
             random_state=RANDOM_STATE,
         ),
     )
-    model.fit(x[train_indices], y[train_indices])
-    predictions = model.predict(x[test_indices])
-    labels = sorted(str(label) for label in np.unique(y))
+    model.fit(x_train, y_train)
+    predictions = model.predict(x_test)
+    labels = sorted(str(label) for label in np.union1d(y_train, y_test))
 
-    print(f"Rows: {len(rows)} ({len(train_indices)} train, {len(test_indices)} test)")
+    print(f"Training rows from {train_csv.name}: {len(y_train)}")
+    print(f"Test rows from {test_csv.name}: {len(y_test)}")
     print(f"Classes: {', '.join(labels)}")
-    print(f"Test accuracy: {accuracy_score(y[test_indices], predictions):.3f}")
+    print(f"Test accuracy: {accuracy_score(y_test, predictions):.3f}")
     print("\nClassification report:")
     print(classification_report(
-        y[test_indices], predictions, labels=labels, zero_division=0, digits=3
+        y_test, predictions, labels=labels, zero_division=0, digits=3
     ))
     print("Confusion matrix (rows = actual, columns = predicted):")
     print(f"Labels: {labels}")
-    print(confusion_matrix(y[test_indices], predictions, labels=labels))
+    print(confusion_matrix(y_test, predictions, labels=labels))
 
     model_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump({
@@ -99,15 +85,17 @@ def train(csv_path: Path, model_path: Path, test_size: float) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", type=Path, default=DEFAULT_CSV,
-                        help=f"feature CSV (default: {DEFAULT_CSV})")
+                        help=f"training feature CSV (default: {DEFAULT_CSV})")
+    parser.add_argument("--test-csv", type=Path, default=DEFAULT_TEST_CSV,
+                        help=f"test feature CSV (default: {DEFAULT_TEST_CSV})")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL,
                         help=f"where to save the trained model (default: {DEFAULT_MODEL})")
-    parser.add_argument("--test-size", type=float, default=0.2,
-                        help="fraction of cut-number groups reserved for evaluation (default: 0.2)")
     args = parser.parse_args()
     if not args.csv.is_file():
         parser.error(f"feature CSV does not exist: {args.csv}; run scripts/extract_features.py first")
-    train(args.csv, args.model, args.test_size)
+    if not args.test_csv.is_file():
+        parser.error(f"test feature CSV does not exist: {args.test_csv}; run scripts/extract_features.py first")
+    train(args.csv, args.test_csv, args.model)
 
 
 if __name__ == "__main__":

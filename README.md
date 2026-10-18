@@ -93,7 +93,7 @@ python scripts/extract_features.py
 python scripts/train_model.py
 ```
 
-The evaluation keeps neighboring groups of ten audio cuts together in the train/test split, scales features using training data only, prints an accuracy report and confusion matrix, and saves the trained pipeline to `models/engine_classifier.joblib`. This is a first baseline: each class currently comes from a specific engine recording, so a high score does not yet show that the model can diagnose a different physical motor.
+The model trains on all rows in `train_cut_features.csv` and evaluates on `test_cut_features.csv`. It scales features using the training data only, prints an accuracy report and confusion matrix, and saves the trained pipeline to `models/engine_classifier.joblib`. This is a first baseline: each class currently comes from a specific engine recording, so a high score does not yet show that the model can diagnose a different physical motor.
 
 Tips:
 
