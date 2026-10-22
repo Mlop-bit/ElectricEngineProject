@@ -22,6 +22,9 @@ Create a project-local environment and install the dependencies:
 uv venv .venv --python 3.11
 uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 ```
+```MacOs
+python -m pip install -r requirements.txt
+```
 
 Select `.venv\Scripts\python.exe` as the Python interpreter in VS Code before
 running the scripts.
