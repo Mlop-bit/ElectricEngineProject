@@ -7,6 +7,9 @@ import struct
 import zipfile
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_ARCHIVE = PROJECT_ROOT / "data" / "IDMT-ISA-ELECTRIC-ENGINE.zip"
 DEFAULT_MEMBER = "train_cut/engine1_good/pure_0.wav"
@@ -14,13 +17,6 @@ DEFAULT_MEMBER = "train_cut/engine1_good/pure_0.wav"
 
 def _read_audio_member(archive: zipfile.ZipFile, member: str) -> tuple[np.ndarray, int]:
     """Read one WAV member, returning its samples and sample rate."""
-    try:
-        import numpy as np
-    except ModuleNotFoundError as error:
-        if error.name == "numpy":
-            raise SystemExit("NumPy is missing. Install the project dependencies from requirements.txt.") from error
-        raise
-
     try:
         audio_bytes = archive.read(member)
     except KeyError as error:
@@ -98,17 +94,6 @@ def scan_all_audio(
     archive_path: Path, folder: str | None = None, plot: bool = False
 ) -> None:
     """Read matching WAV files one at a time and report overall details."""
-    if plot:
-        try:
-            import matplotlib.pyplot as plt
-            import numpy as np
-        except ModuleNotFoundError as error:
-            if error.name in {"matplotlib", "numpy"}:
-                raise SystemExit(
-                    f"{error.name} is missing. Install the project dependencies from requirements.txt."
-                ) from error
-            raise
-
     total_files = 0
     total_seconds = 0.0
     prefix = folder.strip("/\\").replace("\\", "/") + "/" if folder else None
@@ -180,16 +165,6 @@ def main() -> None:
         return
     if args.folder or args.plot:
         parser.error("--folder and --plot can only be used together with --all")
-
-    try:
-        import numpy as np
-        import matplotlib.pyplot as plt
-    except ModuleNotFoundError as error:
-        if error.name == "numpy":
-            raise SystemExit("NumPy is missing. Install the project dependencies from requirements.txt.") from error
-        if error.name == "matplotlib":
-            raise SystemExit("Matplotlib is missing. Install the project dependencies from requirements.txt.") from error
-        raise
 
     audio, sample_rate = read_audio(args.archive, args.member)
     duration = len(audio) / sample_rate
