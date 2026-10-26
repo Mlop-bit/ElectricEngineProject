@@ -18,7 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CSV = PROJECT_ROOT / "train_cut_features.csv"
 DEFAULT_TEST_CSV = PROJECT_ROOT / "test_cut_features.csv"
 DEFAULT_MODEL = PROJECT_ROOT / "models" / "engine_classifier.joblib"
-FEATURE_COLUMNS = ["peak", "ptp", "rms", "dominant_frequency_hz"]
+FEATURE_COLUMNS = ["rms", "dominant_frequency_hz"]
 RANDOM_STATE = 42
 
 
