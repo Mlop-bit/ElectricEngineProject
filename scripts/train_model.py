@@ -9,6 +9,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.inspection import permutation_importance
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -60,11 +61,29 @@ def train(train_csv: Path, test_csv: Path, model_path: Path) -> None:
     model.fit(x_train, y_train)
     predictions = model.predict(x_test)
     labels = sorted(str(label) for label in np.union1d(y_train, y_test))
+    importance = permutation_importance(
+        model,
+        x_test,
+        y_test,
+        scoring="accuracy",
+        n_repeats=10,
+        random_state=RANDOM_STATE,
+    )
 
     print(f"Training rows from {train_csv.name}: {len(y_train)}")
     print(f"Test rows from {test_csv.name}: {len(y_test)}")
     print(f"Classes: {', '.join(labels)}")
     print(f"Test accuracy: {accuracy_score(y_test, predictions):.3f}")
+    print("\nPermutation feature importance (test accuracy decrease):")
+    max_importance = max(abs(value) for value in importance.importances_mean)
+    for index in np.argsort(importance.importances_mean)[::-1]:
+        value = importance.importances_mean[index]
+        bar_length = round(abs(value) / max_importance * 30) if max_importance else 0
+        bar = ("#" * bar_length) if value >= 0 else ("<" * bar_length)
+        print(
+            f"{FEATURE_COLUMNS[index]:<26} {value:+.4f} "
+            f"{bar} (± {importance.importances_std[index]:.4f})"
+        )
     print("\nClassification report:")
     print(classification_report(
         y_test, predictions, labels=labels, zero_division=0, digits=3
