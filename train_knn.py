@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -60,20 +62,24 @@ y_train = train_data["class"]
 X_test = test_data[FEATURES]
 y_test = test_data["class"]
 
+pipeline = Pipeline([
+    ("scaler", StandardScaler()),
+    ("knn", KNeighborsClassifier()),
+])
+
 param_grid = {
-    "n_neighbors": list(range(1, 31)),
-    "weights": ["uniform", "distance"],
-    "metric": ["euclidean", "manhattan"]
+    "knn__n_neighbors": list(range(1, 31)),
+    "knn__weights": ["uniform", "distance"],
+    "knn__metric": ["euclidean", "manhattan"],
 }
 
 grid_search = GridSearchCV(
-    KNeighborsClassifier(),
+    pipeline,
     param_grid,
     cv=5,
     scoring="accuracy",
-    n_jobs=-1
+    n_jobs=-1,
 )
-
 grid_search.fit(X_train, y_train)
 
 best_knn = grid_search.best_estimator_
