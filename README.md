@@ -87,7 +87,7 @@ The scripts locate the `data/` directory relative to their own location, so they
 
 ## Train the neural-network classifier
 
-The initial model is a small multilayer perceptron (MLP) that classifies each audio segment as `Good`, `Broken`, or `Heavy load`. It uses four features: peak amplitude, peak-to-peak amplitude, RMS, and dominant frequency. The dataset's `train_cut` audio is read directly from the ZIP; it does not need to be extracted first.
+The initial model is a small multilayer perceptron (MLP) that classifies each audio segment as `Good`, `Broken`, or `Heavy load`. It uses all numeric feature columns in the feature CSV, excluding the `class`, `file`, and `noise` metadata columns. The dataset's `train_cut` audio is read directly from the ZIP; it does not need to be extracted first.
 
 Regenerate the feature CSV if needed, then train and evaluate the model:
 
@@ -96,7 +96,18 @@ python scripts/extract_features.py
 python scripts/train_model.py
 ```
 
-The model trains on all rows in `train_cut_features.csv` and evaluates on `test_cut_features.csv`. It scales features using the training data only, prints an accuracy report and confusion matrix, and saves the trained pipeline to `models/engine_classifier.joblib`. This is a first baseline: each class currently comes from a specific engine recording, so a high score does not yet show that the model can diagnose a different physical motor.
+The model trains on all rows in `train_cut_features.csv` and evaluates on `test_cut_features.csv`. It scales features using the training data only, prints an accuracy report and confusion matrix, and saves the trained pipeline to `models/engine_classifier.joblib`. To evaluate one test noise category at a time, pass `--test-noise`:
+
+```powershell
+python scripts/train_model.py --test-noise atmo_high
+python scripts/train_model.py --test-noise atmo_low
+python scripts/train_model.py --test-noise atmo_medium
+python scripts/train_model.py --test-noise stresstest
+python scripts/train_model.py --test-noise talking
+python scripts/train_model.py --test-noise whitenoise_low
+```
+
+Each command uses the full training CSV and filters only the test CSV. This is a first baseline: each class currently comes from a specific engine recording, so a high score does not yet show that the model can diagnose a different physical motor.
 
 Tips:
 

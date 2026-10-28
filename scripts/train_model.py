@@ -24,7 +24,9 @@ RANDOM_STATE = 42
 
 
 def load_features(
-    csv_path: Path, feature_columns: list[str] | None = None
+    csv_path: Path,
+    feature_columns: list[str] | None = None,
+    noise_type: str | None = None,
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Load and validate feature values and labels from a CSV file."""
     with csv_path.open("r", newline="", encoding="utf-8") as csv_file:
@@ -42,6 +44,12 @@ def load_features(
     missing = required.difference(fieldnames)
     if missing:
         raise ValueError(f"Feature CSV is missing columns: {', '.join(sorted(missing))}")
+    if noise_type is not None:
+        if "noise" not in fieldnames:
+            raise ValueError(f"Feature CSV has no 'noise' column: {csv_path}")
+        rows = [row for row in rows if row["noise"] == noise_type]
+        if not rows:
+            raise ValueError(f"No rows with noise type '{noise_type}' in {csv_path}")
     if not rows:
         raise ValueError(f"Feature CSV contains no rows: {csv_path}")
 
@@ -52,9 +60,12 @@ def load_features(
     return x, y, feature_columns
 
 
-def train(train_csv: Path, test_csv: Path, model_path: Path) -> None:
+def train(
+    train_csv: Path, test_csv: Path, model_path: Path,
+    test_noise: str | None = None,
+) -> None:
     x_train, y_train, feature_columns = load_features(train_csv)
-    x_test, y_test, _ = load_features(test_csv, feature_columns)
+    x_test, y_test, _ = load_features(test_csv, feature_columns, test_noise)
     model = make_pipeline(
         StandardScaler(),
         MLPClassifier(
@@ -80,6 +91,8 @@ def train(train_csv: Path, test_csv: Path, model_path: Path) -> None:
 
     print(f"Training rows from {train_csv.name}: {len(y_train)}")
     print(f"Test rows from {test_csv.name}: {len(y_test)}")
+    if test_noise:
+        print(f"Test noise type: {test_noise}")
     print(f"Classes: {', '.join(labels)}")
     print(f"Test accuracy: {accuracy_score(y_test, predictions):.3f}")
     print("\n=== FEATURE IMPORTANCE (permutation on test set) ===", flush=True)
@@ -122,12 +135,14 @@ def main() -> None:
                         help=f"test feature CSV (default: {DEFAULT_TEST_CSV})")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL,
                         help=f"where to save the trained model (default: {DEFAULT_MODEL})")
+    parser.add_argument("--test-noise", type=str,
+                        help="evaluate only test rows with this noise type (from the CSV noise column)")
     args = parser.parse_args()
     if not args.csv.is_file():
         parser.error(f"feature CSV does not exist: {args.csv}; run scripts/extract_features.py first")
     if not args.test_csv.is_file():
         parser.error(f"test feature CSV does not exist: {args.test_csv}; run scripts/extract_features.py first")
-    train(args.csv, args.test_csv, args.model)
+    train(args.csv, args.test_csv, args.model, args.test_noise)
 
 
 if __name__ == "__main__":
