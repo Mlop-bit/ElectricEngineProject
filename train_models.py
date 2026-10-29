@@ -47,8 +47,8 @@ print(df['class'].value_counts())
 # 2. DATA PREPARATION
 # ============================================================
 # Features (X) and Target (y)
-# Dropping 'file' column as it is not a predictive feature
-X = df.drop(columns=['class', 'file'])
+# Dropping 'file' and 'noise' columns as they are not predictive features
+X = df.drop(columns=['class', 'file', 'noise'])
 y = df['class']
 
 print(f"\n Features: {list(X.columns)}")
