@@ -42,8 +42,8 @@ NOISE_KINDS = ["white", "pink", "both"]
 
 # How loud the sound is compared to the added noise, in dB.
 # Each copy gets a random value between these two. Lower = more noise.
-NOISE_SNR_MIN_DB = -6
-NOISE_SNR_MAX_DB = 20
+NOISE_SNR_MIN_DB = -15
+NOISE_SNR_MAX_DB = 10
 
 
 # Settings: files
