@@ -1,0 +1,7 @@
+environment,samples,accuracy
+atmo_high,210,1.0
+atmo_low,210,1.0
+atmo_medium,214,1.0
+stresstest,123,1.0
+talking,861,1.0
+whitenoise_low,403,1.0

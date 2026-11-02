@@ -1,0 +1,25 @@
+Model: kNN
+Feature set: mfcc_features
+Features: ['mfcc_1_mean', 'mfcc_1_std', 'mfcc_2_mean', 'mfcc_2_std', 'mfcc_3_mean', 'mfcc_3_std', 'mfcc_4_mean', 'mfcc_4_std', 'mfcc_5_mean', 'mfcc_5_std', 'mfcc_6_mean', 'mfcc_6_std', 'mfcc_7_mean', 'mfcc_7_std', 'mfcc_8_mean', 'mfcc_8_std', 'mfcc_9_mean', 'mfcc_9_std', 'mfcc_10_mean', 'mfcc_10_std', 'mfcc_11_mean', 'mfcc_11_std', 'mfcc_12_mean', 'mfcc_12_std', 'mfcc_13_mean', 'mfcc_13_std', 'mfcc_14_mean', 'mfcc_14_std', 'mfcc_15_mean', 'mfcc_15_std', 'mfcc_16_mean', 'mfcc_16_std', 'mfcc_17_mean', 'mfcc_17_std', 'mfcc_18_mean', 'mfcc_18_std', 'mfcc_19_mean', 'mfcc_19_std']
+Training file: train_cut_features.csv
+Test file: test_cut_features.csv
+Training rows: 1428
+Training recording groups: 357
+Test rows: 2021
+Validation: 5-fold StratifiedGroupKFold
+Groups: class and file
+Shuffle: True; random_state: 42
+Best parameters: {'knn__metric': 'manhattan', 'knn__n_neighbors': 1, 'knn__weights': 'uniform'}
+Cross-validation accuracy: 0.999306
+Overall test accuracy: 0.656111
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Broken       1.00      0.63      0.77       665
+        Good       0.51      0.95      0.66       669
+  Heavy load       0.78      0.40      0.53       687
+
+    accuracy                           0.66      2021
+   macro avg       0.76      0.66      0.65      2021
+weighted avg       0.76      0.66      0.65      2021

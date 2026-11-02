@@ -1,0 +1,25 @@
+Model: kNN
+Feature set: frequency_features
+Features: ['dominant_frequency_hz', 'wobble_frequency_hz', 'wobble_strength']
+Training file: train_cut_features.csv
+Test file: test_cut_features.csv
+Training rows: 1428
+Training recording groups: 357
+Test rows: 2021
+Validation: 5-fold StratifiedGroupKFold
+Groups: class and file
+Shuffle: True; random_state: 42
+Best parameters: {'knn__metric': 'manhattan', 'knn__n_neighbors': 4, 'knn__weights': 'uniform'}
+Cross-validation accuracy: 0.995090
+Overall test accuracy: 0.793172
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Broken       0.98      0.51      0.67       665
+        Good       0.85      0.88      0.86       669
+  Heavy load       0.69      0.98      0.81       687
+
+    accuracy                           0.79      2021
+   macro avg       0.84      0.79      0.78      2021
+weighted avg       0.84      0.79      0.78      2021
