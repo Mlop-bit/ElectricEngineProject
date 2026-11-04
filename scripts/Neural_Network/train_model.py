@@ -15,10 +15,11 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MODEL_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = MODEL_DIR.parent.parent
 DEFAULT_CSV = PROJECT_ROOT / "train_cut_features.csv"
 DEFAULT_TEST_CSV = PROJECT_ROOT / "test_cut_features.csv"
-DEFAULT_MODEL = PROJECT_ROOT / "models" / "engine_classifier.joblib"
+DEFAULT_MODEL = MODEL_DIR / "engine_classifier.joblib"
 METADATA_COLUMNS = {"class", "file", "noise"}
 RANDOM_STATE = 42
 

@@ -11,7 +11,9 @@ ElectricEngineProject/
 │   ├── download_dataset.py
 │   ├── extract_features.py
 │   ├── read_wav.py
-│   └── train_model.py
+│   └── Neural Network/
+│       ├── train_model.py
+│       └── engine_classifier.joblib # Locally trained model (not tracked in Git)
 ├── train_cut_features.csv # Extracted training features
 ├── models/                # Locally trained model (not tracked in Git)
 ├── requirements.txt
@@ -93,18 +95,18 @@ Regenerate the feature CSV if needed, then train and evaluate the model:
 
 ```powershell
 python scripts/extract_features.py
-python scripts/train_model.py
+python "scripts/Neural_Network/train_model.py"
 ```
 
-The model trains on all rows in `train_cut_features.csv` and evaluates on `test_cut_features.csv`. It scales features using the training data only, prints an accuracy report and confusion matrix, and saves the trained pipeline to `models/engine_classifier.joblib`. To evaluate one test noise category at a time, pass `--test-noise`:
+The model trains on all rows in `train_cut_features.csv` and evaluates on `test_cut_features.csv`. It scales features using the training data only, prints an accuracy report and confusion matrix, and saves the trained pipeline to `scripts/Neural Network/engine_classifier.joblib`. To evaluate one test noise category at a time, pass `--test-noise`:
 
 ```powershell
-python scripts/train_model.py --test-noise atmo_high
-python scripts/train_model.py --test-noise atmo_low
-python scripts/train_model.py --test-noise atmo_medium
-python scripts/train_model.py --test-noise stresstest
-python scripts/train_model.py --test-noise talking
-python scripts/train_model.py --test-noise whitenoise_low
+python "scripts/Neural_Network/train_model.py" --test-noise atmo_high
+python "scripts/Neural_Network/train_model.py" --test-noise atmo_low
+python "scripts/Neural_Network/train_model.py" --test-noise atmo_medium
+python "scripts/Neural_Network/train_model.py" --test-noise stresstest
+python "scripts/Neural_Network/train_model.py" --test-noise talking
+python "scripts/Neural_Network/train_model.py" --test-noise whitenoise_low
 ```
 
 Each command uses the full training CSV and filters only the test CSV. This is a first baseline: each class currently comes from a specific engine recording, so a high score does not yet show that the model can diagnose a different physical motor.
@@ -112,3 +114,4 @@ Each command uses the full training CSV and filters only the test CSV. This is a
 Tips:
 
 To close every plot : use Ctrl+C
+

@@ -12,6 +12,7 @@ __pycache__/
 
 # Generated model and visualization files
 models/
+scripts/Neural_Network/engine_classifier.joblib
 *.png
 
 # Mac thing
