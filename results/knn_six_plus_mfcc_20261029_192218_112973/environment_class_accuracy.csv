@@ -1,0 +1,19 @@
+environment,actual_class,samples,correct,accuracy,predicted_Broken,predicted_Good,predicted_Heavy load
+atmo_high,Broken,70,0,0.0,0,38,32
+atmo_high,Good,70,61,0.8714285714285714,0,61,9
+atmo_high,Heavy load,70,34,0.4857142857142857,0,36,34
+atmo_low,Broken,68,68,1.0,68,0,0
+atmo_low,Good,72,72,1.0,0,72,0
+atmo_low,Heavy load,70,60,0.8571428571428571,0,10,60
+atmo_medium,Broken,74,1,0.013513513513513514,1,72,1
+atmo_medium,Good,70,70,1.0,0,70,0
+atmo_medium,Heavy load,70,2,0.02857142857142857,0,68,2
+stresstest,Broken,41,26,0.6341463414634146,26,0,15
+stresstest,Good,41,16,0.3902439024390244,0,16,25
+stresstest,Heavy load,41,38,0.926829268292683,0,3,38
+talking,Broken,283,141,0.49823321554770317,141,125,17
+talking,Good,282,278,0.9858156028368794,0,278,4
+talking,Heavy load,296,51,0.17229729729729729,0,245,51
+whitenoise_low,Broken,129,129,1.0,129,0,0
+whitenoise_low,Good,134,134,1.0,0,134,0
+whitenoise_low,Heavy load,140,140,1.0,0,0,140

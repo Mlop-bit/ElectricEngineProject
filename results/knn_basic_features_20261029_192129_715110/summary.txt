@@ -1,0 +1,25 @@
+Model: kNN
+Feature set: basic_features
+Features: ['peak', 'ptp', 'rms']
+Training file: train_cut_features.csv
+Test file: test_cut_features.csv
+Training rows: 1428
+Training recording groups: 357
+Test rows: 2021
+Validation: 5-fold StratifiedGroupKFold
+Groups: class and file
+Shuffle: True; random_state: 42
+Best parameters: {'knn__metric': 'euclidean', 'knn__n_neighbors': 3, 'knn__weights': 'distance'}
+Cross-validation accuracy: 0.985974
+Overall test accuracy: 0.769421
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Broken       0.71      0.66      0.69       665
+        Good       0.68      0.69      0.68       669
+  Heavy load       0.91      0.95      0.93       687
+
+    accuracy                           0.77      2021
+   macro avg       0.76      0.77      0.77      2021
+weighted avg       0.77      0.77      0.77      2021

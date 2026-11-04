@@ -1,0 +1,19 @@
+environment,actual_class,samples,correct,accuracy,predicted_Broken,predicted_Good,predicted_Heavy load
+atmo_high,Broken,70,70,1.0,70,0,0
+atmo_high,Good,70,70,1.0,0,70,0
+atmo_high,Heavy load,70,70,1.0,0,0,70
+atmo_low,Broken,68,68,1.0,68,0,0
+atmo_low,Good,72,72,1.0,0,72,0
+atmo_low,Heavy load,70,70,1.0,0,0,70
+atmo_medium,Broken,74,74,1.0,74,0,0
+atmo_medium,Good,70,70,1.0,0,70,0
+atmo_medium,Heavy load,70,70,1.0,0,0,70
+stresstest,Broken,41,41,1.0,41,0,0
+stresstest,Good,41,41,1.0,0,41,0
+stresstest,Heavy load,41,41,1.0,0,0,41
+talking,Broken,283,283,1.0,283,0,0
+talking,Good,282,282,1.0,0,282,0
+talking,Heavy load,296,296,1.0,0,0,296
+whitenoise_low,Broken,129,129,1.0,129,0,0
+whitenoise_low,Good,134,134,1.0,0,134,0
+whitenoise_low,Heavy load,140,140,1.0,0,0,140

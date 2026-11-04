@@ -1,0 +1,7 @@
+environment,samples,accuracy
+atmo_high,210,0.6523809523809524
+atmo_low,210,0.9952380952380953
+atmo_medium,214,0.9532710280373832
+stresstest,123,0.5040650406504065
+talking,861,0.867595818815331
+whitenoise_low,403,1.0

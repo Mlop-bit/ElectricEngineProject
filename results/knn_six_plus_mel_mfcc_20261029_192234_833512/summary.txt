@@ -1,0 +1,25 @@
+Model: kNN
+Feature set: six_plus_mel_mfcc
+Features: ['peak', 'ptp', 'rms', 'dominant_frequency_hz', 'wobble_frequency_hz', 'wobble_strength', 'mel_62hz', 'mel_130hz', 'mel_203hz', 'mel_283hz', 'mel_370hz', 'mel_465hz', 'mel_568hz', 'mel_681hz', 'mel_803hz', 'mel_936hz', 'mel_1081hz', 'mel_1239hz', 'mel_1411hz', 'mel_1598hz', 'mel_1802hz', 'mel_2023hz', 'mel_2265hz', 'mel_2527hz', 'mel_2813hz', 'mel_3125hz', 'mel_3464hz', 'mel_3833hz', 'mel_4234hz', 'mel_4672hz', 'mel_5148hz', 'mel_5666hz', 'mel_6230hz', 'mel_6844hz', 'mel_7513hz', 'mel_8240hz', 'mel_9033hz', 'mel_9895hz', 'mel_10834hz', 'mel_11856hz', 'mel_12969hz', 'mel_14180hz', 'mel_15499hz', 'mel_16934hz', 'mel_18497hz', 'mel_20198hz', 'mfcc_1_mean', 'mfcc_1_std', 'mfcc_2_mean', 'mfcc_2_std', 'mfcc_3_mean', 'mfcc_3_std', 'mfcc_4_mean', 'mfcc_4_std', 'mfcc_5_mean', 'mfcc_5_std', 'mfcc_6_mean', 'mfcc_6_std', 'mfcc_7_mean', 'mfcc_7_std', 'mfcc_8_mean', 'mfcc_8_std', 'mfcc_9_mean', 'mfcc_9_std', 'mfcc_10_mean', 'mfcc_10_std', 'mfcc_11_mean', 'mfcc_11_std', 'mfcc_12_mean', 'mfcc_12_std', 'mfcc_13_mean', 'mfcc_13_std', 'mfcc_14_mean', 'mfcc_14_std', 'mfcc_15_mean', 'mfcc_15_std', 'mfcc_16_mean', 'mfcc_16_std', 'mfcc_17_mean', 'mfcc_17_std', 'mfcc_18_mean', 'mfcc_18_std', 'mfcc_19_mean', 'mfcc_19_std']
+Training file: train_cut_features.csv
+Test file: test_cut_features.csv
+Training rows: 1428
+Training recording groups: 357
+Test rows: 2021
+Validation: 5-fold StratifiedGroupKFold
+Groups: class and file
+Shuffle: True; random_state: 42
+Best parameters: {'knn__metric': 'manhattan', 'knn__n_neighbors': 1, 'knn__weights': 'uniform'}
+Cross-validation accuracy: 1.000000
+Overall test accuracy: 0.919347
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Broken       1.00      1.00      1.00       665
+        Good       0.80      1.00      0.89       669
+  Heavy load       1.00      0.76      0.87       687
+
+    accuracy                           0.92      2021
+   macro avg       0.93      0.92      0.92      2021
+weighted avg       0.94      0.92      0.92      2021
